@@ -1,0 +1,107 @@
+user:
+  type:
+    id:
+      type: string
+      flavor: uuid
+    name:
+      type: string
+    displayName:
+      type: string
+    iconId:
+      type: string
+      flavor: uuid
+    bot:
+      type: boolean
+
+channel:
+  type:
+    id:
+      type: string
+      flavor: uuid
+    name:
+      type: string
+    path:
+      type: string
+    parentId:
+      type: string
+      flavor: uuid
+    creator:
+      type: $user
+    createdAt:
+      type: string
+      flavor: date
+    updatedAt:
+      type: string
+      flavor: date
+
+message_embedded:
+  type:
+    raw:
+      type: string
+    type:
+      type: string
+    id:
+      type: string
+      flavor: uuid
+
+message:
+  type:
+    id:
+      type: string
+      flavor: uuid
+    user:
+      type: $user
+    channelId:
+      type: string
+      flavor: uuid
+    text:
+      type: string
+    plainText:
+      type: string
+    embedded:
+      type: $message_embedded
+      array: true
+    createdAt:
+      type: string
+      flavor: date
+    updatedAt:
+      type: string
+      flavor: date
+
+message_deleted:
+  type:
+    id:
+      type: string
+      flavor: uuid
+    channelId:
+      type: string
+      flavor: uuid
+
+direct_message_deleted:
+  type:
+    id:
+      type: string
+      flavor: uuid
+    userId:
+      type: string
+      flavor: uuid
+    channelId:
+      type: string
+      flavor: uuid
+
+stamp_count:
+  type:
+    stampId:
+      type: string
+      flavor: uuid
+    userId:
+      type: string
+      flavor: uuid
+    count:
+      type: number
+    createdAt:
+      type: string
+      flavor: date
+    updatedAt:
+      type: string
+      flavor: date

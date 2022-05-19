@@ -1,0 +1,147 @@
+PING:
+  type:
+    eventTime:
+      type: string
+      flavor: date
+JOINED:
+  type:
+    eventTime:
+      type: string
+      flavor: date
+    channel:
+      type: $channel
+LEFT:
+  type:
+    eventTime:
+      type: string
+      flavor: date
+    channel:
+      type: $channel
+MESSAGE_CREATED:
+  type:
+    eventTime:
+      type: string
+      flavor: date
+    message:
+      type: $message
+MESSAGE_DELETED:
+  type:
+    eventTime:
+      type: string
+      flavor: date
+    message:
+      type:
+        id:
+          type: string
+          flavor: uuid
+        channelId:
+          type: string
+          flavor: uuid
+MESSAGE_UPDATED:
+  type:
+    eventTime:
+      type: string
+      flavor: date
+    message:
+      type: $message
+DIRECT_MESSAGE_CREATED:
+  type:
+    eventTime:
+      type: string
+      flavor: date
+    message:
+      type: $message
+DIRECT_MESSAGE_DELETED:
+  type:
+    eventTime:
+      type: string
+      flavor: date
+    message:
+      type:
+        id:
+          type: string
+          flavor: uuid
+        userId:
+          type: string
+          flavor: uuid
+        channelId:
+          type: string
+          flavor: uuid
+DIRECT_MESSAGE_UPDATED:
+  type:
+    eventTime:
+      type: string
+      flavor: date
+    message:
+      type: $message
+BOT_MESSAGE_STAMPS_UPDATED:
+  type:
+    eventTime:
+      type: string
+      flavor: date
+    messageId:
+      type: string
+      flavor: uuid
+    stamps:
+      type: $stamp_count
+      array: true
+CHANNEL_CREATED:
+  type:
+    eventTime:
+      type: string
+      flavor: date
+    message:
+      type: $channel
+CHANNEL_TOPIC_CHANGED:
+  type:
+    eventTime:
+      type: string
+      flavor: date
+    message:
+      type: $channel
+    topic:
+      type: string
+    updater:
+      type: $user
+USER_CREATED:
+  type:
+    eventTime:
+      type: string
+      flavor: date
+    user:
+      type: $user
+STAMP_CREATED:
+  type:
+    eventTime:
+      type: string
+      flavor: date
+    id:
+      type: string
+      flavor: uuid
+    name:
+      type: string
+    fileId:
+      type: string
+      flavor: uuid
+    creator:
+      type: $user
+TAG_ADDED:
+  type:
+    eventTime:
+      type: string
+      flavor: date
+    tagId:
+      type: string
+      flavor: uuid
+    tag:
+      type: string
+TAG_REMOVED:
+  type:
+    eventTime:
+      type: string
+      flavor: date
+    tagId:
+      type: string
+      flavor: uuid
+    tag:
+      type: string
