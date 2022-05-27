@@ -2,7 +2,7 @@
 #include <vector>
 #include <json/json.h>
 
-namespace traQ {
+namespace traQBot {
 struct User {
   std::string id;
   std::string name;

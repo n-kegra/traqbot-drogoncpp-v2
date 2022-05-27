@@ -173,7 +173,7 @@ int main(int, char **) {
                 "#include <vector>\n"
                 "#include <json/json.h>\n"
                 "\n"
-                "namespace traQ {\n";
+                "namespace traQBot {\n";
     for (const auto& model : models) {
         auto model_name = model.first.as<string>();
         auto model_entity = model.second.as<Item>();
@@ -191,7 +191,7 @@ int main(int, char **) {
                 "#include <json/json.h>\n"
                 "#include \"models.h\"\n"
                 "\n"
-                "namespace traQ {\n";
+                "namespace traQBot {\n";
     for (const auto& event : events) {
         auto event_id = event.first.as<string>();
         auto event_model = event.second.as<Item>();

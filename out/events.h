@@ -5,7 +5,7 @@
 #include <json/json.h>
 #include "models.h"
 
-namespace traQ {
+namespace traQBot {
 struct PingEvent {
   std::string eventTime;
   auto& fromJson(const Json::Value& _json) {
