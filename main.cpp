@@ -228,28 +228,28 @@ int main(int, char **) {
                 "namespace drogon {\n"
                 "\n"
                 "template <>\n"
-                "inline traQ::EventData fromRequest(const HttpRequest& req) {\n"
+                "inline traQBot::EventData fromRequest(const HttpRequest& req) {\n"
                 "  auto event = req.getHeader(\"X-TRAQ-BOT-EVENT\");\n"
                 "  auto requestId = req.getHeader(\"X-TRAQ-BOT-REQUEST-ID\");\n"
                 "  auto token = req.getHeader(\"X-TRAQ-BOT-TOKEN\");\n"
                 "  auto json = req.getJsonObject();\n"
-                "  traQ::EventData data;\n"
+                "  traQBot::EventData data;\n"
                 "  data.requestId = requestId;\n"
-                "  data.event = traQ::EventType::Unknown;\n"
+                "  data.event = traQBot::EventType::Unknown;\n"
                 "  data.token = token;\n"
                 "  if (json) {\n";
     for (const auto& event : events) {
         auto event_id = event.first.as<string>();
         events_h << "    if (event == \"" << event_id << "\") {" << endl;
-        events_h << "      data.event = traQ::EventType::"
+        events_h << "      data.event = traQBot::EventType::"
                  << SnakeCaseToUpperCamelCase(event_id) << ";" << endl;
-        events_h << "      data.payload = traQ::"
+        events_h << "      data.payload = traQBot::"
                  << SnakeCaseToUpperCamelCase(event_id)
                  << "Event().fromJson(*json);" << endl;
         events_h << "    } else" << endl;
     }
     events_h << "    {\n";
-    events_h << "      data.event = traQ::EventType::Unknown;\n";
+    events_h << "      data.event = traQBot::EventType::Unknown;\n";
     events_h << "    }\n";
     events_h << "  }\n"
                 "  return data;\n"
