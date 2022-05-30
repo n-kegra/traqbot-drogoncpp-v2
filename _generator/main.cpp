@@ -166,10 +166,13 @@ int main(int, char **) {
     auto events = YAML::LoadFile("../events.yaml");
     auto models = YAML::LoadFile("../models.yaml");
 
-    ofstream events_h{"../out/events.h"};
-    ofstream models_h{"../out/models.h"};
+    ofstream events_h{"../traQBot/events.h"};
+    ofstream models_h{"../traQBot/models.h"};
 
-    models_h << "#include <string>\n"
+    models_h << "#ifndef TRAQBOT_MODEL_H\n"
+                "#define TRAQBOT_MODEL_H\n"
+                "\n"
+                "#include <string>\n"
                 "#include <vector>\n"
                 "#include <json/json.h>\n"
                 "\n"
@@ -182,14 +185,18 @@ int main(int, char **) {
     }
     models_h << "}\n"
                 "\n"
+                "#endif\n"
              << endl;
 
-    events_h << "#include <string>\n"
+    events_h << "#ifndef TRAQBOT_EVENT_H\n"
+                "#define TRAQBOT_EVENT_H\n"
+                "\n"
+                "#include <string>\n"
                 "#include <vector>\n"
                 "#include <variant>\n"
                 "#include <drogon/drogon.h>\n"
                 "#include <json/json.h>\n"
-                "#include \"models.h\"\n"
+                "#include <traQBot/models.h>\n"
                 "\n"
                 "namespace traQBot {\n";
     for (const auto& event : events) {
@@ -214,30 +221,31 @@ int main(int, char **) {
         auto event_id = event.first.as<string>();
         events_h << "  " << SnakeCaseToUpperCamelCase(event_id) << "," << endl;
     }
-    events_h << "  Unknown,\n"
-                "};\n"
-                "struct EventData {\n"
-                "  EventType event;\n"
-                "  std::string requestId;\n"
-                "  std::string token;\n"
-                "  EventPayload payload;\n"
-                "};\n"
-                "\n"
-                "}\n"
-                "\n"
-                "namespace drogon {\n"
-                "\n"
-                "template <>\n"
-                "inline traQBot::EventData fromRequest(const HttpRequest& req) {\n"
-                "  auto event = req.getHeader(\"X-TRAQ-BOT-EVENT\");\n"
-                "  auto requestId = req.getHeader(\"X-TRAQ-BOT-REQUEST-ID\");\n"
-                "  auto token = req.getHeader(\"X-TRAQ-BOT-TOKEN\");\n"
-                "  auto json = req.getJsonObject();\n"
-                "  traQBot::EventData data;\n"
-                "  data.requestId = requestId;\n"
-                "  data.event = traQBot::EventType::Unknown;\n"
-                "  data.token = token;\n"
-                "  if (json) {\n";
+    events_h
+        << "  Unknown,\n"
+           "};\n"
+           "struct EventData {\n"
+           "  EventType event;\n"
+           "  std::string requestId;\n"
+           "  std::string token;\n"
+           "  EventPayload payload;\n"
+           "};\n"
+           "\n"
+           "}\n"
+           "\n"
+           "namespace drogon {\n"
+           "\n"
+           "template <>\n"
+           "inline traQBot::EventData fromRequest(const HttpRequest& req) {\n"
+           "  auto event = req.getHeader(\"X-TRAQ-BOT-EVENT\");\n"
+           "  auto requestId = req.getHeader(\"X-TRAQ-BOT-REQUEST-ID\");\n"
+           "  auto token = req.getHeader(\"X-TRAQ-BOT-TOKEN\");\n"
+           "  auto json = req.getJsonObject();\n"
+           "  traQBot::EventData data;\n"
+           "  data.requestId = requestId;\n"
+           "  data.event = traQBot::EventType::Unknown;\n"
+           "  data.token = token;\n"
+           "  if (json) {\n";
     for (const auto& event : events) {
         auto event_id = event.first.as<string>();
         events_h << "    if (event == \"" << event_id << "\") {" << endl;
@@ -254,7 +262,9 @@ int main(int, char **) {
     events_h << "  }\n"
                 "  return data;\n"
                 "}\n"
-                ""
-                "}"
+                "\n"
+                "}\n"
+                "\n"
+                "#endif\n"
              << endl;
 }

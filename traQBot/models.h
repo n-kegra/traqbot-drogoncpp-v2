@@ -1,3 +1,6 @@
+#ifndef TRAQBOT_MODEL_H
+#define TRAQBOT_MODEL_H
+
 #include <string>
 #include <vector>
 #include <json/json.h>
@@ -108,4 +111,5 @@ struct StampCount {
 };
 }
 
+#endif
 

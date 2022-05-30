@@ -1,9 +1,12 @@
+#ifndef TRAQBOT_EVENT_H
+#define TRAQBOT_EVENT_H
+
 #include <string>
 #include <vector>
 #include <variant>
 #include <drogon/drogon.h>
 #include <json/json.h>
-#include "models.h"
+#include <traQBot/models.h>
 
 namespace traQBot {
 struct PingEvent {
@@ -315,4 +318,8 @@ inline traQBot::EventData fromRequest(const HttpRequest& req) {
   }
   return data;
 }
+
 }
+
+#endif
+
