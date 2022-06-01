@@ -4,6 +4,9 @@
 #include <traQBot/traQBot.h>
 #include <string>
 #include <memory>
+#include <stdexcept>
+
+namespace traQBot {
 
 template<class T, class Tcb>
 class traQBotControllerBase : public drogon::HttpController<traQBotControllerBase<T, Tcb>, false> {
@@ -50,6 +53,8 @@ auto loadEnv(const std::string& name) {
     } else {
         throw std::runtime_error(name + "is not set");
     }
+}
+
 }
 
 #endif
