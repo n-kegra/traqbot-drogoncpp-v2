@@ -14,6 +14,9 @@ set_property(TARGET traqbot_event PROPERTY CXX_STANDARD 20)
 find_package(yaml-cpp CONFIG REQUIRED)
 target_link_libraries(traqbot_event PRIVATE yaml-cpp)
 
+find_package(mstch CONFIG REQUIRED)
+target_link_libraries(traqbot_event PRIVATE mstch::mstch)
+
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 include(CPack)

@@ -5,6 +5,7 @@
 #include <variant>
 #include <vector>
 #include <yaml-cpp/yaml.h>
+#include <mstch/mstch.hpp>
 using namespace std;
 
 string SnakeCaseToUpperCamelCase(string str) {
@@ -162,12 +163,29 @@ template <> struct convert<Item> {
 };
 } // namespace YAML
 
+auto readFile(const string& path) {
+    ifstream input_file(path);
+    if (!input_file.is_open()) {
+        throw runtime_error("could not open file: " + path);
+    }
+    return string((std::istreambuf_iterator<char>(input_file)), std::istreambuf_iterator<char>());
+}
+
 int main(int, char **) {
     auto events = YAML::LoadFile("../events.yaml");
     auto models = YAML::LoadFile("../models.yaml");
 
+    auto template_events = readFile("./events.mustache");
+    auto template_models = readFile("./models.mustache");
+
+    mstch::map context_events{};
+    mstch::map context_models{};
+
     ofstream events_h{"../traQBot/events.h"};
     ofstream models_h{"../traQBot/models.h"};
+
+    models_h << mstch::render(template_models, context_models);
+    events_h << mstch::render(template_events, context_events);
 
     models_h << "#ifndef TRAQBOT_MODEL_H\n"
                 "#define TRAQBOT_MODEL_H\n"
