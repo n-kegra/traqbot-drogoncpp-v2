@@ -1,0 +1,68 @@
+#ifndef TRAQBOT_EVENT_H
+#define TRAQBOT_EVENT_H
+
+#include <string>
+#include <vector>
+#include <variant>
+#include <drogon/drogon.h>
+#include <json/json.h>
+#include <traQBot/models.h>
+
+namespace traQBot {
+
+{{#events}}
+{{{modelStruct}}}
+{{/events}}
+struct UnknownEvent {};
+
+using EventPayload = std::variant<
+{{#events}}
+    {{eventObjname}},
+{{/events}}
+    UnknownEvent
+>;
+
+enum class EventType {
+{{#events}}
+    {{eventTypename}},
+{{/events}}
+    Unknown,
+};
+struct EventData {
+    EventType event;
+    std::string requestId;
+    std::string token;
+    EventPayload payload;
+};
+
+}
+
+namespace drogon {
+
+template <>
+inline traQBot::EventData fromRequest(const HttpRequest& req) {
+    auto event = req.getHeader("X-TRAQ-BOT-EVENT");
+    auto requestId = req.getHeader("X-TRAQ-BOT-REQUEST-ID");
+    auto token = req.getHeader("X-TRAQ-BOT-TOKEN");
+    auto json = req.getJsonObject();
+    traQBot::EventData data;
+    data.requestId = requestId;
+    data.event = traQBot::EventType::Unknown;
+    data.token = token;
+    if (json) {
+{{#events}}
+        if (event == "{{eventId}}") {
+            data.event = traQBot::EventType::{{eventTypename}};
+            data.payload = traQBot::{{eventObjname}}().fromJson(*json);
+        } else
+{{/events}}
+        {
+            data.event = traQBot::EventType::Unknown;
+        }
+    }
+    return data;
+}
+
+}
+
+#endif

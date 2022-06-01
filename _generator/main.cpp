@@ -178,111 +178,49 @@ int main(int, char **) {
     auto template_events = readFile("./events.mustache");
     auto template_models = readFile("./models.mustache");
 
-    mstch::map context_events{};
-    mstch::map context_models{};
+
+    mstch::array dat_models;
+    std::transform(models.begin(), models.end(), std::back_inserter(dat_models), [](const auto& model) {
+        auto model_name = model.first.as<string>();
+        auto model_entity = model.second.as<Item>();
+
+        ostringstream ss;
+        model_entity.outputModelStruct(ss, SnakeCaseToUpperCamelCase(model_name));
+
+        return mstch::map{
+            {"modelStruct", ss.str()}
+        };
+    });
+
+    mstch::array dat_events;
+    std::transform(events.begin(), events.end(), std::back_inserter(dat_events), [](const auto& event) {
+        auto event_id = event.first.as<string>();
+        auto event_model = event.second.as<Item>();
+
+        auto EventTypename = SnakeCaseToUpperCamelCase(event_id);
+        auto EventObjname = EventTypename + "Event";
+
+        std::ostringstream ss;
+        event_model.outputModelStruct(ss, EventObjname);
+
+        return mstch::map{
+            {"modelStruct", ss.str()},
+            {"eventId", event_id},
+            {"eventObjname", EventObjname},
+            {"eventTypename", EventTypename},
+        };
+    });
+
+    mstch::map context_events{
+        {"events", dat_events}
+    };
+    mstch::map context_models{
+        {"models", dat_models}
+    };
 
     ofstream events_h{"../traQBot/events.h"};
     ofstream models_h{"../traQBot/models.h"};
 
     models_h << mstch::render(template_models, context_models);
     events_h << mstch::render(template_events, context_events);
-
-    models_h << "#ifndef TRAQBOT_MODEL_H\n"
-                "#define TRAQBOT_MODEL_H\n"
-                "\n"
-                "#include <string>\n"
-                "#include <vector>\n"
-                "#include <json/json.h>\n"
-                "\n"
-                "namespace traQBot {\n";
-    for (const auto& model : models) {
-        auto model_name = model.first.as<string>();
-        auto model_entity = model.second.as<Item>();
-        model_entity.outputModelStruct(models_h,
-                                       SnakeCaseToUpperCamelCase(model_name));
-    }
-    models_h << "}\n"
-                "\n"
-                "#endif\n"
-             << endl;
-
-    events_h << "#ifndef TRAQBOT_EVENT_H\n"
-                "#define TRAQBOT_EVENT_H\n"
-                "\n"
-                "#include <string>\n"
-                "#include <vector>\n"
-                "#include <variant>\n"
-                "#include <drogon/drogon.h>\n"
-                "#include <json/json.h>\n"
-                "#include <traQBot/models.h>\n"
-                "\n"
-                "namespace traQBot {\n";
-    for (const auto& event : events) {
-        auto event_id = event.first.as<string>();
-        auto event_model = event.second.as<Item>();
-        event_model.outputModelStruct(
-            events_h, SnakeCaseToUpperCamelCase(event_id) + "Event");
-    }
-    events_h << "\n"
-                "using EventPayload = std::variant<\n";
-    int eventCnt = 0;
-    for (const auto& event : events) {
-        auto event_id = event.first.as<string>();
-        events_h << "  " << SnakeCaseToUpperCamelCase(event_id) + "Event"
-                 << ((eventCnt + 1 == events.size()) ? "" : ",") << endl;
-        eventCnt++;
-    }
-    events_h << ">;\n"
-                "\n"
-                "enum class EventType {\n";
-    for (const auto& event : events) {
-        auto event_id = event.first.as<string>();
-        events_h << "  " << SnakeCaseToUpperCamelCase(event_id) << "," << endl;
-    }
-    events_h
-        << "  Unknown,\n"
-           "};\n"
-           "struct EventData {\n"
-           "  EventType event;\n"
-           "  std::string requestId;\n"
-           "  std::string token;\n"
-           "  EventPayload payload;\n"
-           "};\n"
-           "\n"
-           "}\n"
-           "\n"
-           "namespace drogon {\n"
-           "\n"
-           "template <>\n"
-           "inline traQBot::EventData fromRequest(const HttpRequest& req) {\n"
-           "  auto event = req.getHeader(\"X-TRAQ-BOT-EVENT\");\n"
-           "  auto requestId = req.getHeader(\"X-TRAQ-BOT-REQUEST-ID\");\n"
-           "  auto token = req.getHeader(\"X-TRAQ-BOT-TOKEN\");\n"
-           "  auto json = req.getJsonObject();\n"
-           "  traQBot::EventData data;\n"
-           "  data.requestId = requestId;\n"
-           "  data.event = traQBot::EventType::Unknown;\n"
-           "  data.token = token;\n"
-           "  if (json) {\n";
-    for (const auto& event : events) {
-        auto event_id = event.first.as<string>();
-        events_h << "    if (event == \"" << event_id << "\") {" << endl;
-        events_h << "      data.event = traQBot::EventType::"
-                 << SnakeCaseToUpperCamelCase(event_id) << ";" << endl;
-        events_h << "      data.payload = traQBot::"
-                 << SnakeCaseToUpperCamelCase(event_id)
-                 << "Event().fromJson(*json);" << endl;
-        events_h << "    } else" << endl;
-    }
-    events_h << "    {\n";
-    events_h << "      data.event = traQBot::EventType::Unknown;\n";
-    events_h << "    }\n";
-    events_h << "  }\n"
-                "  return data;\n"
-                "}\n"
-                "\n"
-                "}\n"
-                "\n"
-                "#endif\n"
-             << endl;
 }

@@ -9,6 +9,7 @@
 #include <traQBot/models.h>
 
 namespace traQBot {
+
 struct PingEvent {
   std::string eventTime;
   auto& fromJson(const Json::Value& _json) {
@@ -16,6 +17,7 @@ struct PingEvent {
     return *this;
   }
 };
+
 struct JoinedEvent {
   std::string eventTime;
   Channel channel;
@@ -25,6 +27,7 @@ struct JoinedEvent {
     return *this;
   }
 };
+
 struct LeftEvent {
   std::string eventTime;
   Channel channel;
@@ -34,6 +37,7 @@ struct LeftEvent {
     return *this;
   }
 };
+
 struct MessageCreatedEvent {
   std::string eventTime;
   Message message;
@@ -43,6 +47,7 @@ struct MessageCreatedEvent {
     return *this;
   }
 };
+
 struct MessageDeletedEvent {
   std::string eventTime;
   struct {
@@ -60,6 +65,7 @@ struct MessageDeletedEvent {
     return *this;
   }
 };
+
 struct MessageUpdatedEvent {
   std::string eventTime;
   Message message;
@@ -69,6 +75,7 @@ struct MessageUpdatedEvent {
     return *this;
   }
 };
+
 struct DirectMessageCreatedEvent {
   std::string eventTime;
   Message message;
@@ -78,6 +85,7 @@ struct DirectMessageCreatedEvent {
     return *this;
   }
 };
+
 struct DirectMessageDeletedEvent {
   std::string eventTime;
   struct {
@@ -97,6 +105,7 @@ struct DirectMessageDeletedEvent {
     return *this;
   }
 };
+
 struct DirectMessageUpdatedEvent {
   std::string eventTime;
   Message message;
@@ -106,6 +115,7 @@ struct DirectMessageUpdatedEvent {
     return *this;
   }
 };
+
 struct BotMessageStampsUpdatedEvent {
   std::string eventTime;
   std::string messageId;
@@ -119,6 +129,7 @@ struct BotMessageStampsUpdatedEvent {
     return *this;
   }
 };
+
 struct ChannelCreatedEvent {
   std::string eventTime;
   Channel message;
@@ -128,6 +139,7 @@ struct ChannelCreatedEvent {
     return *this;
   }
 };
+
 struct ChannelTopicChangedEvent {
   std::string eventTime;
   Channel message;
@@ -141,6 +153,7 @@ struct ChannelTopicChangedEvent {
     return *this;
   }
 };
+
 struct UserCreatedEvent {
   std::string eventTime;
   User user;
@@ -150,6 +163,7 @@ struct UserCreatedEvent {
     return *this;
   }
 };
+
 struct StampCreatedEvent {
   std::string eventTime;
   std::string id;
@@ -165,6 +179,7 @@ struct StampCreatedEvent {
     return *this;
   }
 };
+
 struct TagAddedEvent {
   std::string eventTime;
   std::string tagId;
@@ -176,6 +191,7 @@ struct TagAddedEvent {
     return *this;
   }
 };
+
 struct TagRemovedEvent {
   std::string eventTime;
   std::string tagId;
@@ -188,49 +204,52 @@ struct TagRemovedEvent {
   }
 };
 
+struct UnknownEvent {};
+
 using EventPayload = std::variant<
-  PingEvent,
-  JoinedEvent,
-  LeftEvent,
-  MessageCreatedEvent,
-  MessageDeletedEvent,
-  MessageUpdatedEvent,
-  DirectMessageCreatedEvent,
-  DirectMessageDeletedEvent,
-  DirectMessageUpdatedEvent,
-  BotMessageStampsUpdatedEvent,
-  ChannelCreatedEvent,
-  ChannelTopicChangedEvent,
-  UserCreatedEvent,
-  StampCreatedEvent,
-  TagAddedEvent,
-  TagRemovedEvent
+    PingEvent,
+    JoinedEvent,
+    LeftEvent,
+    MessageCreatedEvent,
+    MessageDeletedEvent,
+    MessageUpdatedEvent,
+    DirectMessageCreatedEvent,
+    DirectMessageDeletedEvent,
+    DirectMessageUpdatedEvent,
+    BotMessageStampsUpdatedEvent,
+    ChannelCreatedEvent,
+    ChannelTopicChangedEvent,
+    UserCreatedEvent,
+    StampCreatedEvent,
+    TagAddedEvent,
+    TagRemovedEvent,
+    UnknownEvent
 >;
 
 enum class EventType {
-  Ping,
-  Joined,
-  Left,
-  MessageCreated,
-  MessageDeleted,
-  MessageUpdated,
-  DirectMessageCreated,
-  DirectMessageDeleted,
-  DirectMessageUpdated,
-  BotMessageStampsUpdated,
-  ChannelCreated,
-  ChannelTopicChanged,
-  UserCreated,
-  StampCreated,
-  TagAdded,
-  TagRemoved,
-  Unknown,
+    Ping,
+    Joined,
+    Left,
+    MessageCreated,
+    MessageDeleted,
+    MessageUpdated,
+    DirectMessageCreated,
+    DirectMessageDeleted,
+    DirectMessageUpdated,
+    BotMessageStampsUpdated,
+    ChannelCreated,
+    ChannelTopicChanged,
+    UserCreated,
+    StampCreated,
+    TagAdded,
+    TagRemoved,
+    Unknown,
 };
 struct EventData {
-  EventType event;
-  std::string requestId;
-  std::string token;
-  EventPayload payload;
+    EventType event;
+    std::string requestId;
+    std::string token;
+    EventPayload payload;
 };
 
 }
@@ -239,87 +258,86 @@ namespace drogon {
 
 template <>
 inline traQBot::EventData fromRequest(const HttpRequest& req) {
-  auto event = req.getHeader("X-TRAQ-BOT-EVENT");
-  auto requestId = req.getHeader("X-TRAQ-BOT-REQUEST-ID");
-  auto token = req.getHeader("X-TRAQ-BOT-TOKEN");
-  auto json = req.getJsonObject();
-  traQBot::EventData data;
-  data.requestId = requestId;
-  data.event = traQBot::EventType::Unknown;
-  data.token = token;
-  if (json) {
-    if (event == "PING") {
-      data.event = traQBot::EventType::Ping;
-      data.payload = traQBot::PingEvent().fromJson(*json);
-    } else
-    if (event == "JOINED") {
-      data.event = traQBot::EventType::Joined;
-      data.payload = traQBot::JoinedEvent().fromJson(*json);
-    } else
-    if (event == "LEFT") {
-      data.event = traQBot::EventType::Left;
-      data.payload = traQBot::LeftEvent().fromJson(*json);
-    } else
-    if (event == "MESSAGE_CREATED") {
-      data.event = traQBot::EventType::MessageCreated;
-      data.payload = traQBot::MessageCreatedEvent().fromJson(*json);
-    } else
-    if (event == "MESSAGE_DELETED") {
-      data.event = traQBot::EventType::MessageDeleted;
-      data.payload = traQBot::MessageDeletedEvent().fromJson(*json);
-    } else
-    if (event == "MESSAGE_UPDATED") {
-      data.event = traQBot::EventType::MessageUpdated;
-      data.payload = traQBot::MessageUpdatedEvent().fromJson(*json);
-    } else
-    if (event == "DIRECT_MESSAGE_CREATED") {
-      data.event = traQBot::EventType::DirectMessageCreated;
-      data.payload = traQBot::DirectMessageCreatedEvent().fromJson(*json);
-    } else
-    if (event == "DIRECT_MESSAGE_DELETED") {
-      data.event = traQBot::EventType::DirectMessageDeleted;
-      data.payload = traQBot::DirectMessageDeletedEvent().fromJson(*json);
-    } else
-    if (event == "DIRECT_MESSAGE_UPDATED") {
-      data.event = traQBot::EventType::DirectMessageUpdated;
-      data.payload = traQBot::DirectMessageUpdatedEvent().fromJson(*json);
-    } else
-    if (event == "BOT_MESSAGE_STAMPS_UPDATED") {
-      data.event = traQBot::EventType::BotMessageStampsUpdated;
-      data.payload = traQBot::BotMessageStampsUpdatedEvent().fromJson(*json);
-    } else
-    if (event == "CHANNEL_CREATED") {
-      data.event = traQBot::EventType::ChannelCreated;
-      data.payload = traQBot::ChannelCreatedEvent().fromJson(*json);
-    } else
-    if (event == "CHANNEL_TOPIC_CHANGED") {
-      data.event = traQBot::EventType::ChannelTopicChanged;
-      data.payload = traQBot::ChannelTopicChangedEvent().fromJson(*json);
-    } else
-    if (event == "USER_CREATED") {
-      data.event = traQBot::EventType::UserCreated;
-      data.payload = traQBot::UserCreatedEvent().fromJson(*json);
-    } else
-    if (event == "STAMP_CREATED") {
-      data.event = traQBot::EventType::StampCreated;
-      data.payload = traQBot::StampCreatedEvent().fromJson(*json);
-    } else
-    if (event == "TAG_ADDED") {
-      data.event = traQBot::EventType::TagAdded;
-      data.payload = traQBot::TagAddedEvent().fromJson(*json);
-    } else
-    if (event == "TAG_REMOVED") {
-      data.event = traQBot::EventType::TagRemoved;
-      data.payload = traQBot::TagRemovedEvent().fromJson(*json);
-    } else
-    {
-      data.event = traQBot::EventType::Unknown;
+    auto event = req.getHeader("X-TRAQ-BOT-EVENT");
+    auto requestId = req.getHeader("X-TRAQ-BOT-REQUEST-ID");
+    auto token = req.getHeader("X-TRAQ-BOT-TOKEN");
+    auto json = req.getJsonObject();
+    traQBot::EventData data;
+    data.requestId = requestId;
+    data.event = traQBot::EventType::Unknown;
+    data.token = token;
+    if (json) {
+        if (event == "PING") {
+            data.event = traQBot::EventType::Ping;
+            data.payload = traQBot::PingEvent().fromJson(*json);
+        } else
+        if (event == "JOINED") {
+            data.event = traQBot::EventType::Joined;
+            data.payload = traQBot::JoinedEvent().fromJson(*json);
+        } else
+        if (event == "LEFT") {
+            data.event = traQBot::EventType::Left;
+            data.payload = traQBot::LeftEvent().fromJson(*json);
+        } else
+        if (event == "MESSAGE_CREATED") {
+            data.event = traQBot::EventType::MessageCreated;
+            data.payload = traQBot::MessageCreatedEvent().fromJson(*json);
+        } else
+        if (event == "MESSAGE_DELETED") {
+            data.event = traQBot::EventType::MessageDeleted;
+            data.payload = traQBot::MessageDeletedEvent().fromJson(*json);
+        } else
+        if (event == "MESSAGE_UPDATED") {
+            data.event = traQBot::EventType::MessageUpdated;
+            data.payload = traQBot::MessageUpdatedEvent().fromJson(*json);
+        } else
+        if (event == "DIRECT_MESSAGE_CREATED") {
+            data.event = traQBot::EventType::DirectMessageCreated;
+            data.payload = traQBot::DirectMessageCreatedEvent().fromJson(*json);
+        } else
+        if (event == "DIRECT_MESSAGE_DELETED") {
+            data.event = traQBot::EventType::DirectMessageDeleted;
+            data.payload = traQBot::DirectMessageDeletedEvent().fromJson(*json);
+        } else
+        if (event == "DIRECT_MESSAGE_UPDATED") {
+            data.event = traQBot::EventType::DirectMessageUpdated;
+            data.payload = traQBot::DirectMessageUpdatedEvent().fromJson(*json);
+        } else
+        if (event == "BOT_MESSAGE_STAMPS_UPDATED") {
+            data.event = traQBot::EventType::BotMessageStampsUpdated;
+            data.payload = traQBot::BotMessageStampsUpdatedEvent().fromJson(*json);
+        } else
+        if (event == "CHANNEL_CREATED") {
+            data.event = traQBot::EventType::ChannelCreated;
+            data.payload = traQBot::ChannelCreatedEvent().fromJson(*json);
+        } else
+        if (event == "CHANNEL_TOPIC_CHANGED") {
+            data.event = traQBot::EventType::ChannelTopicChanged;
+            data.payload = traQBot::ChannelTopicChangedEvent().fromJson(*json);
+        } else
+        if (event == "USER_CREATED") {
+            data.event = traQBot::EventType::UserCreated;
+            data.payload = traQBot::UserCreatedEvent().fromJson(*json);
+        } else
+        if (event == "STAMP_CREATED") {
+            data.event = traQBot::EventType::StampCreated;
+            data.payload = traQBot::StampCreatedEvent().fromJson(*json);
+        } else
+        if (event == "TAG_ADDED") {
+            data.event = traQBot::EventType::TagAdded;
+            data.payload = traQBot::TagAddedEvent().fromJson(*json);
+        } else
+        if (event == "TAG_REMOVED") {
+            data.event = traQBot::EventType::TagRemoved;
+            data.payload = traQBot::TagRemovedEvent().fromJson(*json);
+        } else
+        {
+            data.event = traQBot::EventType::Unknown;
+        }
     }
-  }
-  return data;
+    return data;
 }
 
 }
 
 #endif
-

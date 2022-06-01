@@ -6,6 +6,7 @@
 #include <json/json.h>
 
 namespace traQBot {
+
 struct User {
   std::string id;
   std::string name;
@@ -21,6 +22,7 @@ struct User {
     return *this;
   }
 };
+
 struct Channel {
   std::string id;
   std::string name;
@@ -40,6 +42,7 @@ struct Channel {
     return *this;
   }
 };
+
 struct MessageEmbedded {
   std::string raw;
   std::string type;
@@ -51,6 +54,7 @@ struct MessageEmbedded {
     return *this;
   }
 };
+
 struct Message {
   std::string id;
   User user;
@@ -74,6 +78,7 @@ struct Message {
     return *this;
   }
 };
+
 struct MessageDeleted {
   std::string id;
   std::string channelId;
@@ -83,6 +88,7 @@ struct MessageDeleted {
     return *this;
   }
 };
+
 struct DirectMessageDeleted {
   std::string id;
   std::string userId;
@@ -94,6 +100,7 @@ struct DirectMessageDeleted {
     return *this;
   }
 };
+
 struct StampCount {
   std::string stampId;
   std::string userId;
@@ -109,7 +116,8 @@ struct StampCount {
     return *this;
   }
 };
+
+
 }
 
 #endif
-
