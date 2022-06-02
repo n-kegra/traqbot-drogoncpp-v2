@@ -58,7 +58,7 @@ auto loadEnv(const std::string& name) {
     if(tmp){
         return std::string(tmp);
     } else {
-        throw std::runtime_error(name + "is not set");
+        throw std::runtime_error(name + " is not set");
     }
 }
 
