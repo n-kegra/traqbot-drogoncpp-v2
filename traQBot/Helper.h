@@ -31,8 +31,15 @@ class traQBotControllerBase : public drogon::HttpController<traQBotControllerBas
             return;
         }
 
-        if(bot_callback)
-            std::visit(*bot_callback, eventData.payload);
+        if(bot_callback) {
+            if constexpr (requires (Tcb& _cb, EventData& _evDat) {
+                _cb.procAll(_evDat);
+            }) {
+                bot_callback->procAll(eventData);
+            } else {
+                std::visit(*bot_callback, eventData.payload);
+            }
+        }
     }
 };
 
