@@ -53,15 +53,6 @@ auto makeBot(const std::string& verificationToken, const std::shared_ptr<Tcb>& c
     return std::make_shared<traQBotController>(verificationToken, callback);
 }
 
-auto loadEnv(const std::string& name) {
-    auto tmp = std::getenv(name.c_str());
-    if(tmp){
-        return std::string(tmp);
-    } else {
-        throw std::runtime_error(name + " is not set");
-    }
-}
-
 }
 
 #endif
