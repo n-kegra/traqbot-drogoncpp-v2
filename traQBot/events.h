@@ -5,8 +5,8 @@
 #include <vector>
 #include <variant>
 #include <drogon/drogon.h>
-#include <json/json.h>
 #include <traQBot/models.h>
+#include <traQ/apis/MeApi.h>
 
 namespace traQBot {
 
@@ -217,24 +217,24 @@ struct TagRemovedEvent {
 struct UnknownEvent {};
 
 class Bot {
-    std::string verification_token, token, uuid, username, home_channel_id;
-    std::function<void(Ping)> on_ping_callback;
-    std::function<void(Joined)> on_joined_callback;
-    std::function<void(Left)> on_left_callback;
-    std::function<void(MessageCreated)> on_message_created_callback;
-    std::function<void(MessageDeleted)> on_message_deleted_callback;
-    std::function<void(MessageUpdated)> on_message_updated_callback;
-    std::function<void(DirectMessageCreated)> on_direct_message_created_callback;
-    std::function<void(DirectMessageDeleted)> on_direct_message_deleted_callback;
-    std::function<void(DirectMessageUpdated)> on_direct_message_updated_callback;
-    std::function<void(BotMessageStampsUpdated)> on_bot_message_stamps_updated_callback;
-    std::function<void(ChannelCreated)> on_channel_created_callback;
-    std::function<void(ChannelTopicChanged)> on_channel_topic_changed_callback;
-    std::function<void(UserCreated)> on_user_created_callback;
-    std::function<void(UserActivated)> on_user_activated_callback;
-    std::function<void(StampCreated)> on_stamp_created_callback;
-    std::function<void(TagAdded)> on_tag_added_callback;
-    std::function<void(TagRemoved)> on_tag_removed_callback;
+    std::string verification_token, access_token, uuid, username, home_channel_id;
+    std::function<void(PingEvent)> on_ping_callback;
+    std::function<void(JoinedEvent)> on_joined_callback;
+    std::function<void(LeftEvent)> on_left_callback;
+    std::function<void(MessageCreatedEvent)> on_message_created_callback;
+    std::function<void(MessageDeletedEvent)> on_message_deleted_callback;
+    std::function<void(MessageUpdatedEvent)> on_message_updated_callback;
+    std::function<void(DirectMessageCreatedEvent)> on_direct_message_created_callback;
+    std::function<void(DirectMessageDeletedEvent)> on_direct_message_deleted_callback;
+    std::function<void(DirectMessageUpdatedEvent)> on_direct_message_updated_callback;
+    std::function<void(BotMessageStampsUpdatedEvent)> on_bot_message_stamps_updated_callback;
+    std::function<void(ChannelCreatedEvent)> on_channel_created_callback;
+    std::function<void(ChannelTopicChangedEvent)> on_channel_topic_changed_callback;
+    std::function<void(UserCreatedEvent)> on_user_created_callback;
+    std::function<void(UserActivatedEvent)> on_user_activated_callback;
+    std::function<void(StampCreatedEvent)> on_stamp_created_callback;
+    std::function<void(TagAddedEvent)> on_tag_added_callback;
+    std::function<void(TagRemovedEvent)> on_tag_removed_callback;
     auto loadEnv(const std::string& name) {
         auto tmp = std::getenv(name.c_str());
         if(tmp){
@@ -247,101 +247,101 @@ public:
     std::string get_uuid() { return uuid; }
     std::string get_username() { return username; }
     std::string get_home_channel_id() { return home_channel_id; }
-    traQBot(std::string _verification_token, std::string _token) :
+    Bot(std::string _verification_token, std::string _access_token) :
         verification_token(_verification_token),
-        token(_token)
+        access_token(_access_token)
     {
-        drogon::app().registerHandler("/", [this](const drogon::HttpRequestPtr &req,
+        drogon::app().registerHandler("/", [*this](const drogon::HttpRequestPtr &req,
         std::function<void (const drogon::HttpResponsePtr &)> &&callback) {
             auto resp = drogon::HttpResponse::newHttpResponse();
             callback(resp);
 
-            if(eventData.token == verification_token){
+            auto event = req->getHeader("X-TRAQ-BOT-EVENT");
+            auto requestId = req->getHeader("X-TRAQ-BOT-REQUEST-ID");
+            auto header_token = req->getHeader("X-TRAQ-BOT-TOKEN");
+            if(header_token == verification_token){
                 resp->setStatusCode(drogon::HttpStatusCode::k204NoContent);
             } else {
                 resp->setStatusCode(drogon::HttpStatusCode::k400BadRequest);
                 return;
             }
 
-            auto event = req.getHeader("X-TRAQ-BOT-EVENT");
-            auto requestId = req.getHeader("X-TRAQ-BOT-REQUEST-ID");
-            auto token = req.getHeader("X-TRAQ-BOT-TOKEN");
-            auto json = req.getJsonObject();
+            auto json = req->getJsonObject();
             if (json) {
                 if (event == "PING") {
                     const auto data = traQBot::PingEvent().fromJson(*json);
-                    this->on_ping_callback(data);
+                    on_ping_callback(data);
                 } else
                 if (event == "JOINED") {
                     const auto data = traQBot::JoinedEvent().fromJson(*json);
-                    this->on_joined_callback(data);
+                    on_joined_callback(data);
                 } else
                 if (event == "LEFT") {
                     const auto data = traQBot::LeftEvent().fromJson(*json);
-                    this->on_left_callback(data);
+                    on_left_callback(data);
                 } else
                 if (event == "MESSAGE_CREATED") {
                     const auto data = traQBot::MessageCreatedEvent().fromJson(*json);
-                    this->on_message_created_callback(data);
+                    on_message_created_callback(data);
                 } else
                 if (event == "MESSAGE_DELETED") {
                     const auto data = traQBot::MessageDeletedEvent().fromJson(*json);
-                    this->on_message_deleted_callback(data);
+                    on_message_deleted_callback(data);
                 } else
                 if (event == "MESSAGE_UPDATED") {
                     const auto data = traQBot::MessageUpdatedEvent().fromJson(*json);
-                    this->on_message_updated_callback(data);
+                    on_message_updated_callback(data);
                 } else
                 if (event == "DIRECT_MESSAGE_CREATED") {
                     const auto data = traQBot::DirectMessageCreatedEvent().fromJson(*json);
-                    this->on_direct_message_created_callback(data);
+                    on_direct_message_created_callback(data);
                 } else
                 if (event == "DIRECT_MESSAGE_DELETED") {
                     const auto data = traQBot::DirectMessageDeletedEvent().fromJson(*json);
-                    this->on_direct_message_deleted_callback(data);
+                    on_direct_message_deleted_callback(data);
                 } else
                 if (event == "DIRECT_MESSAGE_UPDATED") {
                     const auto data = traQBot::DirectMessageUpdatedEvent().fromJson(*json);
-                    this->on_direct_message_updated_callback(data);
+                    on_direct_message_updated_callback(data);
                 } else
                 if (event == "BOT_MESSAGE_STAMPS_UPDATED") {
                     const auto data = traQBot::BotMessageStampsUpdatedEvent().fromJson(*json);
-                    this->on_bot_message_stamps_updated_callback(data);
+                    on_bot_message_stamps_updated_callback(data);
                 } else
                 if (event == "CHANNEL_CREATED") {
                     const auto data = traQBot::ChannelCreatedEvent().fromJson(*json);
-                    this->on_channel_created_callback(data);
+                    on_channel_created_callback(data);
                 } else
                 if (event == "CHANNEL_TOPIC_CHANGED") {
                     const auto data = traQBot::ChannelTopicChangedEvent().fromJson(*json);
-                    this->on_channel_topic_changed_callback(data);
+                    on_channel_topic_changed_callback(data);
                 } else
                 if (event == "USER_CREATED") {
                     const auto data = traQBot::UserCreatedEvent().fromJson(*json);
-                    this->on_user_created_callback(data);
+                    on_user_created_callback(data);
                 } else
                 if (event == "USER_ACTIVATED") {
                     const auto data = traQBot::UserActivatedEvent().fromJson(*json);
-                    this->on_user_activated_callback(data);
+                    on_user_activated_callback(data);
                 } else
                 if (event == "STAMP_CREATED") {
                     const auto data = traQBot::StampCreatedEvent().fromJson(*json);
-                    this->on_stamp_created_callback(data);
+                    on_stamp_created_callback(data);
                 } else
                 if (event == "TAG_ADDED") {
                     const auto data = traQBot::TagAddedEvent().fromJson(*json);
-                    this->on_tag_added_callback(data);
+                    on_tag_added_callback(data);
                 } else
                 if (event == "TAG_REMOVED") {
                     const auto data = traQBot::TagRemovedEvent().fromJson(*json);
-                    this->on_tag_removed_callback(data);
+                    on_tag_removed_callback(data);
                 } else
                 {
                     // Unknown event;
                 }
             }
         });
-        drogon::app().getLoop()->runAfter(std::chrono::seconds(0), [](){
+        drogon::app().getLoop()->runAfter(std::chrono::seconds(0), [*this](){
             traQApi::MeApi cli("https://q.trap.jp", "/api/v3");
             const auto [_res, _resp, me] = cli.getMe();
             if(me) {
@@ -396,97 +396,7 @@ public:
     void start() {
         drogon::app().run();
     }
-}
-
-}
-
-namespace drogon {
-
-template <>
-inline traQBot::EventData fromRequest(const HttpRequest& req) {
-    auto event = req.getHeader("X-TRAQ-BOT-EVENT");
-    auto requestId = req.getHeader("X-TRAQ-BOT-REQUEST-ID");
-    auto token = req.getHeader("X-TRAQ-BOT-TOKEN");
-    auto json = req.getJsonObject();
-    traQBot::EventData data;
-    data.requestId = requestId;
-    data.event = traQBot::EventType::Unknown;
-    data.token = token;
-    if (json) {
-        if (event == "PING") {
-            data.event = traQBot::EventType::Ping;
-            data.payload = traQBot::PingEvent().fromJson(*json);
-        } else
-        if (event == "JOINED") {
-            data.event = traQBot::EventType::Joined;
-            data.payload = traQBot::JoinedEvent().fromJson(*json);
-        } else
-        if (event == "LEFT") {
-            data.event = traQBot::EventType::Left;
-            data.payload = traQBot::LeftEvent().fromJson(*json);
-        } else
-        if (event == "MESSAGE_CREATED") {
-            data.event = traQBot::EventType::MessageCreated;
-            data.payload = traQBot::MessageCreatedEvent().fromJson(*json);
-        } else
-        if (event == "MESSAGE_DELETED") {
-            data.event = traQBot::EventType::MessageDeleted;
-            data.payload = traQBot::MessageDeletedEvent().fromJson(*json);
-        } else
-        if (event == "MESSAGE_UPDATED") {
-            data.event = traQBot::EventType::MessageUpdated;
-            data.payload = traQBot::MessageUpdatedEvent().fromJson(*json);
-        } else
-        if (event == "DIRECT_MESSAGE_CREATED") {
-            data.event = traQBot::EventType::DirectMessageCreated;
-            data.payload = traQBot::DirectMessageCreatedEvent().fromJson(*json);
-        } else
-        if (event == "DIRECT_MESSAGE_DELETED") {
-            data.event = traQBot::EventType::DirectMessageDeleted;
-            data.payload = traQBot::DirectMessageDeletedEvent().fromJson(*json);
-        } else
-        if (event == "DIRECT_MESSAGE_UPDATED") {
-            data.event = traQBot::EventType::DirectMessageUpdated;
-            data.payload = traQBot::DirectMessageUpdatedEvent().fromJson(*json);
-        } else
-        if (event == "BOT_MESSAGE_STAMPS_UPDATED") {
-            data.event = traQBot::EventType::BotMessageStampsUpdated;
-            data.payload = traQBot::BotMessageStampsUpdatedEvent().fromJson(*json);
-        } else
-        if (event == "CHANNEL_CREATED") {
-            data.event = traQBot::EventType::ChannelCreated;
-            data.payload = traQBot::ChannelCreatedEvent().fromJson(*json);
-        } else
-        if (event == "CHANNEL_TOPIC_CHANGED") {
-            data.event = traQBot::EventType::ChannelTopicChanged;
-            data.payload = traQBot::ChannelTopicChangedEvent().fromJson(*json);
-        } else
-        if (event == "USER_CREATED") {
-            data.event = traQBot::EventType::UserCreated;
-            data.payload = traQBot::UserCreatedEvent().fromJson(*json);
-        } else
-        if (event == "USER_ACTIVATED") {
-            data.event = traQBot::EventType::UserActivated;
-            data.payload = traQBot::UserActivatedEvent().fromJson(*json);
-        } else
-        if (event == "STAMP_CREATED") {
-            data.event = traQBot::EventType::StampCreated;
-            data.payload = traQBot::StampCreatedEvent().fromJson(*json);
-        } else
-        if (event == "TAG_ADDED") {
-            data.event = traQBot::EventType::TagAdded;
-            data.payload = traQBot::TagAddedEvent().fromJson(*json);
-        } else
-        if (event == "TAG_REMOVED") {
-            data.event = traQBot::EventType::TagRemoved;
-            data.payload = traQBot::TagRemovedEvent().fromJson(*json);
-        } else
-        {
-            data.event = traQBot::EventType::Unknown;
-        }
-    }
-    return data;
-}
+};
 
 }
 

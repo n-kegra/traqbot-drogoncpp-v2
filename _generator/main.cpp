@@ -220,7 +220,6 @@ int main(int, char **) {
             {"eventId", event_id},
             {"eventIdLower", stringToLower(event_id)},
             {"eventObjname", EventObjname},
-            {"eventTypename", EventTypename},
         };
     });
 

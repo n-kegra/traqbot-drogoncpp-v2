@@ -5,8 +5,8 @@
 #include <vector>
 #include <variant>
 #include <drogon/drogon.h>
-#include <json/json.h>
 #include <traQBot/models.h>
+#include <traQ/apis/MeApi.h>
 
 namespace traQBot {
 
@@ -16,9 +16,9 @@ namespace traQBot {
 struct UnknownEvent {};
 
 class Bot {
-    std::string verification_token, token, uuid, username, home_channel_id;
+    std::string verification_token, access_token, uuid, username, home_channel_id;
 {{#events}}
-    std::function<void({{eventTypename}})> on_{{eventIdLower}}_callback;
+    std::function<void({{eventObjname}})> on_{{eventIdLower}}_callback;
 {{/events}}
     auto loadEnv(const std::string& name) {
         auto tmp = std::getenv(name.c_str());
@@ -32,31 +32,31 @@ public:
     std::string get_uuid() { return uuid; }
     std::string get_username() { return username; }
     std::string get_home_channel_id() { return home_channel_id; }
-    traQBot(std::string _verification_token, std::string _token) :
+    Bot(std::string _verification_token, std::string _access_token) :
         verification_token(_verification_token),
-        token(_token)
+        access_token(_access_token)
     {
-        drogon::app().registerHandler("/", [this](const drogon::HttpRequestPtr &req,
+        drogon::app().registerHandler("/", [*this](const drogon::HttpRequestPtr &req,
         std::function<void (const drogon::HttpResponsePtr &)> &&callback) {
             auto resp = drogon::HttpResponse::newHttpResponse();
             callback(resp);
 
-            if(eventData.token == verification_token){
+            auto event = req->getHeader("X-TRAQ-BOT-EVENT");
+            auto requestId = req->getHeader("X-TRAQ-BOT-REQUEST-ID");
+            auto header_token = req->getHeader("X-TRAQ-BOT-TOKEN");
+            if(header_token == verification_token){
                 resp->setStatusCode(drogon::HttpStatusCode::k204NoContent);
             } else {
                 resp->setStatusCode(drogon::HttpStatusCode::k400BadRequest);
                 return;
             }
 
-            auto event = req.getHeader("X-TRAQ-BOT-EVENT");
-            auto requestId = req.getHeader("X-TRAQ-BOT-REQUEST-ID");
-            auto token = req.getHeader("X-TRAQ-BOT-TOKEN");
-            auto json = req.getJsonObject();
+            auto json = req->getJsonObject();
             if (json) {
         {{#events}}
                 if (event == "{{eventId}}") {
                     const auto data = traQBot::{{eventObjname}}().fromJson(*json);
-                    this->on_{{eventIdLower}}_callback(data);
+                    on_{{eventIdLower}}_callback(data);
                 } else
         {{/events}}
                 {
@@ -64,7 +64,7 @@ public:
                 }
             }
         });
-        drogon::app().getLoop()->runAfter(std::chrono::seconds(0), [](){
+        drogon::app().getLoop()->runAfter(std::chrono::seconds(0), [*this](){
             traQApi::MeApi cli("https://q.trap.jp", "/api/v3");
             const auto [_res, _resp, me] = cli.getMe();
             if(me) {
@@ -89,35 +89,7 @@ public:
     void start() {
         drogon::app().run();
     }
-}
-
-}
-
-namespace drogon {
-
-template <>
-inline traQBot::EventData fromRequest(const HttpRequest& req) {
-    auto event = req.getHeader("X-TRAQ-BOT-EVENT");
-    auto requestId = req.getHeader("X-TRAQ-BOT-REQUEST-ID");
-    auto token = req.getHeader("X-TRAQ-BOT-TOKEN");
-    auto json = req.getJsonObject();
-    traQBot::EventData data;
-    data.requestId = requestId;
-    data.event = traQBot::EventType::Unknown;
-    data.token = token;
-    if (json) {
-{{#events}}
-        if (event == "{{eventId}}") {
-            data.event = traQBot::EventType::{{eventTypename}};
-            data.payload = traQBot::{{eventObjname}}().fromJson(*json);
-        } else
-{{/events}}
-        {
-            data.event = traQBot::EventType::Unknown;
-        }
-    }
-    return data;
-}
+};
 
 }
 
