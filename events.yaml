@@ -110,6 +110,13 @@ USER_CREATED:
       flavor: date
     user:
       type: $user
+USER_ACTIVATED:
+  type:
+    eventTime:
+      type: string
+      flavor: date
+    user:
+      type: $user
 STAMP_CREATED:
   type:
     eventTime:
