@@ -75,8 +75,8 @@ void Bot::start() {
             }
         });
         deployed_task.join();
-        if(on_launched) {
-            on_launched();
+        if(on_launched_callback) {
+            on_launched_callback();
         }
     });
 
