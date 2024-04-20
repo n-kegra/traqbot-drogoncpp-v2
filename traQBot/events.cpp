@@ -113,6 +113,7 @@ Bot::Bot(std::string _verification_token, std::string _access_token) :
     drogon::app().getLoop()->runAfter(std::chrono::seconds(0), [*this]() mutable {    
         std::thread deployed_task([*this]() mutable {
             traQApi::MeApi cli("https://q.trap.jp", "/api/v3");
+            cli.setBearerToken(access_token);
             const auto [_res, _resp, me] = cli.getMe();
             if(me) {
                 uuid = me->id;
