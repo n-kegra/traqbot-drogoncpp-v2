@@ -1,10 +1,7 @@
-#ifndef TRAQBOT_EVENT_H
-#define TRAQBOT_EVENT_H
-
 #include <drogon/drogon.h>
+#include <traQ/apis/MeApi.h>
 #include <traQBot/events.h>
 #include <traQBot/models.h>
-#include <traQ/apis/MeApi.h>
 
 namespace traQBot {
    
@@ -135,5 +132,3 @@ void Bot::start() {
 }
 
 }
-
-#endif
