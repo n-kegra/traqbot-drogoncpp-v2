@@ -128,6 +128,7 @@ void Bot::enable_mysql_ns() {
 }
 
 void Bot::start() {
+    drogon::app().addListener("0.0.0.0",80);
     drogon::app().run();
 }
 
