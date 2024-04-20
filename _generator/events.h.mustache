@@ -1,0 +1,37 @@
+#ifndef TRAQBOT_EVENT_H
+#define TRAQBOT_EVENT_H
+
+#include <string>
+#include <vector>
+#include <variant>
+#include <traQBot/models.h>
+
+namespace traQBot {
+
+{{#events}}
+{{{modelStruct}}}
+{{/events}}
+struct UnknownEvent {};
+
+class Bot {
+    std::string verification_token, access_token, uuid, username, home_channel_id;
+{{#events}}
+    std::function<void({{eventObjname}})> on_{{eventIdLower}}_callback;
+{{/events}}
+public:
+    std::string get_uuid() { return uuid; }
+    std::string get_username() { return username; }
+    std::string get_home_channel_id() { return home_channel_id; }
+    Bot(std::string _verification_token, std::string _access_token);
+{{#events}}
+    template<class F>
+    void on_{{eventIdLower}}(F callback) { on_{{eventIdLower}}_callback = callback; }
+{{/events}}
+
+    void enable_mysql_ns();
+    void start();
+};
+
+}
+
+#endif

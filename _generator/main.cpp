@@ -186,12 +186,7 @@ auto readFile(const string &path) {
 }
 
 int main(int, char **) {
-    auto events = YAML::LoadFile("../events.yaml");
     auto models = YAML::LoadFile("../models.yaml");
-
-    auto template_events = readFile("./events.mustache");
-    auto template_models = readFile("./models.mustache");
-
     mstch::array dat_models;
     std::transform(models.begin(), models.end(), std::back_inserter(dat_models), [](const auto &model) {
         auto model_name = model.first.as<string>();
@@ -203,7 +198,10 @@ int main(int, char **) {
         return mstch::map{
             {"modelStruct", ss.str()}};
     });
+    mstch::map context_models{
+        {"models", dat_models}};
 
+    auto events = YAML::LoadFile("../events.yaml");
     mstch::array dat_events;
     std::transform(events.begin(), events.end(), std::back_inserter(dat_events), [](const auto &event) {
         auto event_id = event.first.as<string>();
@@ -222,15 +220,18 @@ int main(int, char **) {
             {"eventObjname", EventObjname},
         };
     });
-
     mstch::map context_events{
         {"events", dat_events}};
-    mstch::map context_models{
-        {"models", dat_models}};
 
+    auto template_events_h = readFile("./events.h.mustache");
     ofstream events_h{"../traQBot/events.h"};
-    ofstream models_h{"../traQBot/models.h"};
+    events_h << mstch::render(template_events_h, context_events);
 
-    models_h << mstch::render(template_models, context_models);
-    events_h << mstch::render(template_events, context_events);
+    auto template_events_cpp = readFile("./events.cpp.mustache");
+    ofstream events_cpp{"../traQBot/events.cpp"};
+    events_cpp << mstch::render(template_events_cpp, context_events);
+
+    auto template_models_h = readFile("./models.h.mustache");
+    ofstream models_h{"../traQBot/models.h"};
+    models_h << mstch::render(template_models_h, context_models);
 }

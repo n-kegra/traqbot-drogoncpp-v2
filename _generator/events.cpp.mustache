@@ -1,0 +1,77 @@
+#ifndef TRAQBOT_EVENT_H
+#define TRAQBOT_EVENT_H
+
+#include <drogon/drogon.h>
+#include <traQBot/events.h>
+#include <traQBot/models.h>
+#include <traQ/apis/MeApi.h>
+
+namespace traQBot {
+   
+auto loadEnv(const std::string& name) {
+    auto tmp = std::getenv(name.c_str());
+    if(tmp){
+        return std::string(tmp);
+    } else {
+        throw std::runtime_error(name + " is not set");
+    }
+}
+
+Bot::Bot(std::string _verification_token, std::string _access_token) :
+    verification_token(_verification_token),
+    access_token(_access_token)
+{
+    drogon::app().registerHandler("/", [*this](const drogon::HttpRequestPtr &req,
+    std::function<void (const drogon::HttpResponsePtr &)> &&callback) {
+        auto resp = drogon::HttpResponse::newHttpResponse();
+        callback(resp);
+
+        auto event = req->getHeader("X-TRAQ-BOT-EVENT");
+        auto requestId = req->getHeader("X-TRAQ-BOT-REQUEST-ID");
+        auto header_token = req->getHeader("X-TRAQ-BOT-TOKEN");
+        if(header_token == verification_token){
+            resp->setStatusCode(drogon::HttpStatusCode::k204NoContent);
+        } else {
+            resp->setStatusCode(drogon::HttpStatusCode::k400BadRequest);
+            return;
+        }
+
+        auto json = req->getJsonObject();
+        if (json) {
+    {{#events}}
+            if (event == "{{eventId}}") {
+                const auto data = traQBot::{{eventObjname}}().fromJson(*json);
+                on_{{eventIdLower}}_callback(data);
+            } else
+    {{/events}}
+            {
+                // Unknown event;
+            }
+        }
+    });
+    drogon::app().getLoop()->runAfter(std::chrono::seconds(0), [*this](){
+        traQApi::MeApi cli("https://q.trap.jp", "/api/v3");
+        const auto [_res, _resp, me] = cli.getMe();
+        if(me) {
+            uuid = me->id;
+            username = me->name;
+            home_channel_id = me->homeChannel;
+        }
+    });
+}
+
+void Bot::enable_mysql_ns() {
+    auto mariadb_hostname = loadEnv("NS_MARIADB_HOSTNAME");
+    auto mariadb_database = loadEnv("NS_MARIADB_DATABASE");
+    auto mariadb_username = loadEnv("NS_MARIADB_USER");
+    auto mariadb_password = loadEnv("NS_MARIADB_PASSWORD");
+    drogon::app().createDbClient("mysql", mariadb_hostname, 3306, mariadb_database, mariadb_username, mariadb_password);
+}
+
+void Bot::start() {
+    drogon::app().run();
+}
+
+}
+
+#endif
