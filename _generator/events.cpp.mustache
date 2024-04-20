@@ -61,6 +61,7 @@ void Bot::start() {
     });
 
     drogon::app().getLoop()->runAfter(std::chrono::seconds(0), [this]() mutable {    
+        {{!
         std::thread deployed_task([this]() mutable {
             traQApi::MeApi cli("https://q.trap.jp", "/api/v3");
             cli.setBearerToken(access_token);
@@ -74,7 +75,7 @@ void Bot::start() {
                 std::cout << "home channel : " << home_channel_id << std::endl;
             }
         });
-        deployed_task.join();
+        deployed_task.join(); }}
         if(on_launched_callback) {
             on_launched_callback();
         }
