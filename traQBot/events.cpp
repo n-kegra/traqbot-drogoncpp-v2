@@ -18,8 +18,18 @@ auto loadEnv(const std::string& name) {
 Bot::Bot(std::string _verification_token, std::string _access_token) :
     verification_token(_verification_token),
     access_token(_access_token)
-{
-    drogon::app().registerHandler("/", [*this](const drogon::HttpRequestPtr &req,
+{}
+
+void Bot::enable_mysql_ns() {
+    auto mariadb_hostname = loadEnv("NS_MARIADB_HOSTNAME");
+    auto mariadb_database = loadEnv("NS_MARIADB_DATABASE");
+    auto mariadb_username = loadEnv("NS_MARIADB_USER");
+    auto mariadb_password = loadEnv("NS_MARIADB_PASSWORD");
+    drogon::app().createDbClient("mysql", mariadb_hostname, 3306, mariadb_database, mariadb_username, mariadb_password);
+}
+
+void Bot::start() {
+    drogon::app().registerHandler(path, [this](const drogon::HttpRequestPtr &req,
     std::function<void (const drogon::HttpResponsePtr &)> &&callback) {
         auto resp = drogon::HttpResponse::newHttpResponse();
         callback(resp);
@@ -37,81 +47,115 @@ Bot::Bot(std::string _verification_token, std::string _access_token) :
         auto json = req->getJsonObject();
         if (json) {
             if (event == "PING") {
-                const auto data = traQBot::PingEvent().fromJson(*json);
-                on_ping_callback(data);
+                if(on_ping_callback) {
+                    const auto data = traQBot::PingEvent().fromJson(*json);
+                    on_ping_callback(data);
+                }
             } else
             if (event == "JOINED") {
-                const auto data = traQBot::JoinedEvent().fromJson(*json);
-                on_joined_callback(data);
+                if(on_joined_callback) {
+                    const auto data = traQBot::JoinedEvent().fromJson(*json);
+                    on_joined_callback(data);
+                }
             } else
             if (event == "LEFT") {
-                const auto data = traQBot::LeftEvent().fromJson(*json);
-                on_left_callback(data);
+                if(on_left_callback) {
+                    const auto data = traQBot::LeftEvent().fromJson(*json);
+                    on_left_callback(data);
+                }
             } else
             if (event == "MESSAGE_CREATED") {
-                const auto data = traQBot::MessageCreatedEvent().fromJson(*json);
-                on_message_created_callback(data);
+                if(on_message_created_callback) {
+                    const auto data = traQBot::MessageCreatedEvent().fromJson(*json);
+                    on_message_created_callback(data);
+                }
             } else
             if (event == "MESSAGE_DELETED") {
-                const auto data = traQBot::MessageDeletedEvent().fromJson(*json);
-                on_message_deleted_callback(data);
+                if(on_message_deleted_callback) {
+                    const auto data = traQBot::MessageDeletedEvent().fromJson(*json);
+                    on_message_deleted_callback(data);
+                }
             } else
             if (event == "MESSAGE_UPDATED") {
-                const auto data = traQBot::MessageUpdatedEvent().fromJson(*json);
-                on_message_updated_callback(data);
+                if(on_message_updated_callback) {
+                    const auto data = traQBot::MessageUpdatedEvent().fromJson(*json);
+                    on_message_updated_callback(data);
+                }
             } else
             if (event == "DIRECT_MESSAGE_CREATED") {
-                const auto data = traQBot::DirectMessageCreatedEvent().fromJson(*json);
-                on_direct_message_created_callback(data);
+                if(on_direct_message_created_callback) {
+                    const auto data = traQBot::DirectMessageCreatedEvent().fromJson(*json);
+                    on_direct_message_created_callback(data);
+                }
             } else
             if (event == "DIRECT_MESSAGE_DELETED") {
-                const auto data = traQBot::DirectMessageDeletedEvent().fromJson(*json);
-                on_direct_message_deleted_callback(data);
+                if(on_direct_message_deleted_callback) {
+                    const auto data = traQBot::DirectMessageDeletedEvent().fromJson(*json);
+                    on_direct_message_deleted_callback(data);
+                }
             } else
             if (event == "DIRECT_MESSAGE_UPDATED") {
-                const auto data = traQBot::DirectMessageUpdatedEvent().fromJson(*json);
-                on_direct_message_updated_callback(data);
+                if(on_direct_message_updated_callback) {
+                    const auto data = traQBot::DirectMessageUpdatedEvent().fromJson(*json);
+                    on_direct_message_updated_callback(data);
+                }
             } else
             if (event == "BOT_MESSAGE_STAMPS_UPDATED") {
-                const auto data = traQBot::BotMessageStampsUpdatedEvent().fromJson(*json);
-                on_bot_message_stamps_updated_callback(data);
+                if(on_bot_message_stamps_updated_callback) {
+                    const auto data = traQBot::BotMessageStampsUpdatedEvent().fromJson(*json);
+                    on_bot_message_stamps_updated_callback(data);
+                }
             } else
             if (event == "CHANNEL_CREATED") {
-                const auto data = traQBot::ChannelCreatedEvent().fromJson(*json);
-                on_channel_created_callback(data);
+                if(on_channel_created_callback) {
+                    const auto data = traQBot::ChannelCreatedEvent().fromJson(*json);
+                    on_channel_created_callback(data);
+                }
             } else
             if (event == "CHANNEL_TOPIC_CHANGED") {
-                const auto data = traQBot::ChannelTopicChangedEvent().fromJson(*json);
-                on_channel_topic_changed_callback(data);
+                if(on_channel_topic_changed_callback) {
+                    const auto data = traQBot::ChannelTopicChangedEvent().fromJson(*json);
+                    on_channel_topic_changed_callback(data);
+                }
             } else
             if (event == "USER_CREATED") {
-                const auto data = traQBot::UserCreatedEvent().fromJson(*json);
-                on_user_created_callback(data);
+                if(on_user_created_callback) {
+                    const auto data = traQBot::UserCreatedEvent().fromJson(*json);
+                    on_user_created_callback(data);
+                }
             } else
             if (event == "USER_ACTIVATED") {
-                const auto data = traQBot::UserActivatedEvent().fromJson(*json);
-                on_user_activated_callback(data);
+                if(on_user_activated_callback) {
+                    const auto data = traQBot::UserActivatedEvent().fromJson(*json);
+                    on_user_activated_callback(data);
+                }
             } else
             if (event == "STAMP_CREATED") {
-                const auto data = traQBot::StampCreatedEvent().fromJson(*json);
-                on_stamp_created_callback(data);
+                if(on_stamp_created_callback) {
+                    const auto data = traQBot::StampCreatedEvent().fromJson(*json);
+                    on_stamp_created_callback(data);
+                }
             } else
             if (event == "TAG_ADDED") {
-                const auto data = traQBot::TagAddedEvent().fromJson(*json);
-                on_tag_added_callback(data);
+                if(on_tag_added_callback) {
+                    const auto data = traQBot::TagAddedEvent().fromJson(*json);
+                    on_tag_added_callback(data);
+                }
             } else
             if (event == "TAG_REMOVED") {
-                const auto data = traQBot::TagRemovedEvent().fromJson(*json);
-                on_tag_removed_callback(data);
+                if(on_tag_removed_callback) {
+                    const auto data = traQBot::TagRemovedEvent().fromJson(*json);
+                    on_tag_removed_callback(data);
+                }
             } else
             {
-                // Unknown event;
+                std::cerr << "Unknown event : " << event << std::endl;
             }
         }
     });
 
-    drogon::app().getLoop()->runAfter(std::chrono::seconds(0), [*this]() mutable {    
-        std::thread deployed_task([*this]() mutable {
+    drogon::app().getLoop()->runAfter(std::chrono::seconds(0), [this]() mutable {    
+        std::thread deployed_task([this]() mutable {
             traQApi::MeApi cli("https://q.trap.jp", "/api/v3");
             cli.setBearerToken(access_token);
             const auto [_res, _resp, me] = cli.getMe();
@@ -124,20 +168,13 @@ Bot::Bot(std::string _verification_token, std::string _access_token) :
                 std::cout << "home channel : " << home_channel_id << std::endl;
             }
         });
-        deployed_task.detach();
+        deployed_task.join();
+        if(on_launched) {
+            on_launched();
+        }
     });
-}
 
-void Bot::enable_mysql_ns() {
-    auto mariadb_hostname = loadEnv("NS_MARIADB_HOSTNAME");
-    auto mariadb_database = loadEnv("NS_MARIADB_DATABASE");
-    auto mariadb_username = loadEnv("NS_MARIADB_USER");
-    auto mariadb_password = loadEnv("NS_MARIADB_PASSWORD");
-    drogon::app().createDbClient("mysql", mariadb_hostname, 3306, mariadb_database, mariadb_username, mariadb_password);
-}
-
-void Bot::start() {
-    drogon::app().addListener("0.0.0.0",80);
+    drogon::app().addListener("0.0.0.0", port);
     drogon::app().run();
 }
 

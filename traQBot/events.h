@@ -216,6 +216,8 @@ struct UnknownEvent {};
 
 class Bot {
     std::string verification_token, access_token, uuid, username, home_channel_id;
+    std::string path = "/";
+    uint16_t port = 80;
     std::function<void(PingEvent)> on_ping_callback;
     std::function<void(JoinedEvent)> on_joined_callback;
     std::function<void(LeftEvent)> on_left_callback;
@@ -233,6 +235,7 @@ class Bot {
     std::function<void(StampCreatedEvent)> on_stamp_created_callback;
     std::function<void(TagAddedEvent)> on_tag_added_callback;
     std::function<void(TagRemovedEvent)> on_tag_removed_callback;
+    std::function<void()> on_launched_callback;
 public:
     std::string get_uuid() { return uuid; }
     std::string get_username() { return username; }
@@ -272,6 +275,10 @@ public:
     void on_tag_added(F callback) { on_tag_added_callback = callback; }
     template<class F>
     void on_tag_removed(F callback) { on_tag_removed_callback = callback; }
+    template<class F>
+    void on_launched(F callback) { on_launched_callback = callback; }
+    void set_path(std::string _path) { path = _path; }
+    void set_port(uint16_t _port) { port = _port; }
 
     void enable_mysql_ns();
     void start();

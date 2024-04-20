@@ -15,9 +15,12 @@ struct UnknownEvent {};
 
 class Bot {
     std::string verification_token, access_token, uuid, username, home_channel_id;
+    std::string path = "/";
+    uint16_t port = 80;
 {{#events}}
     std::function<void({{eventObjname}})> on_{{eventIdLower}}_callback;
 {{/events}}
+    std::function<void()> on_launched_callback;
 public:
     std::string get_uuid() { return uuid; }
     std::string get_username() { return username; }
@@ -27,6 +30,10 @@ public:
     template<class F>
     void on_{{eventIdLower}}(F callback) { on_{{eventIdLower}}_callback = callback; }
 {{/events}}
+    template<class F>
+    void on_launched(F callback) { on_launched_callback = callback; }
+    void set_path(std::string _path) { path = _path; }
+    void set_port(uint16_t _port) { port = _port; }
 
     void enable_mysql_ns();
     void start();

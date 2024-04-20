@@ -18,8 +18,18 @@ auto loadEnv(const std::string& name) {
 Bot::Bot(std::string _verification_token, std::string _access_token) :
     verification_token(_verification_token),
     access_token(_access_token)
-{
-    drogon::app().registerHandler("/", [*this](const drogon::HttpRequestPtr &req,
+{}
+
+void Bot::enable_mysql_ns() {
+    auto mariadb_hostname = loadEnv("NS_MARIADB_HOSTNAME");
+    auto mariadb_database = loadEnv("NS_MARIADB_DATABASE");
+    auto mariadb_username = loadEnv("NS_MARIADB_USER");
+    auto mariadb_password = loadEnv("NS_MARIADB_PASSWORD");
+    drogon::app().createDbClient("mysql", mariadb_hostname, 3306, mariadb_database, mariadb_username, mariadb_password);
+}
+
+void Bot::start() {
+    drogon::app().registerHandler(path, [this](const drogon::HttpRequestPtr &req,
     std::function<void (const drogon::HttpResponsePtr &)> &&callback) {
         auto resp = drogon::HttpResponse::newHttpResponse();
         callback(resp);
@@ -38,18 +48,20 @@ Bot::Bot(std::string _verification_token, std::string _access_token) :
         if (json) {
     {{#events}}
             if (event == "{{eventId}}") {
-                const auto data = traQBot::{{eventObjname}}().fromJson(*json);
-                on_{{eventIdLower}}_callback(data);
+                if(on_{{eventIdLower}}_callback) {
+                    const auto data = traQBot::{{eventObjname}}().fromJson(*json);
+                    on_{{eventIdLower}}_callback(data);
+                }
             } else
     {{/events}}
             {
-                // Unknown event;
+                std::cerr << "Unknown event : " << event << std::endl;
             }
         }
     });
 
-    drogon::app().getLoop()->runAfter(std::chrono::seconds(0), [*this]() mutable {    
-        std::thread deployed_task([*this]() mutable {
+    drogon::app().getLoop()->runAfter(std::chrono::seconds(0), [this]() mutable {    
+        std::thread deployed_task([this]() mutable {
             traQApi::MeApi cli("https://q.trap.jp", "/api/v3");
             cli.setBearerToken(access_token);
             const auto [_res, _resp, me] = cli.getMe();
@@ -62,20 +74,13 @@ Bot::Bot(std::string _verification_token, std::string _access_token) :
                 std::cout << "home channel : " << home_channel_id << std::endl;
             }
         });
-        deployed_task.detach();
+        deployed_task.join();
+        if(on_launched) {
+            on_launched();
+        }
     });
-}
 
-void Bot::enable_mysql_ns() {
-    auto mariadb_hostname = loadEnv("NS_MARIADB_HOSTNAME");
-    auto mariadb_database = loadEnv("NS_MARIADB_DATABASE");
-    auto mariadb_username = loadEnv("NS_MARIADB_USER");
-    auto mariadb_password = loadEnv("NS_MARIADB_PASSWORD");
-    drogon::app().createDbClient("mysql", mariadb_hostname, 3306, mariadb_database, mariadb_username, mariadb_password);
-}
-
-void Bot::start() {
-    drogon::app().addListener("0.0.0.0",80);
+    drogon::app().addListener("0.0.0.0", port);
     drogon::app().run();
 }
 
