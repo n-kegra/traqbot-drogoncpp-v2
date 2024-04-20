@@ -215,7 +215,7 @@ struct TagRemovedEvent {
 struct UnknownEvent {};
 
 class Bot {
-    std::string verification_token, access_token, uuid, username, home_channel_id;
+    const std::string verification_token, access_token;
     std::string path = "/";
     uint16_t port = 80;
     std::function<void(PingEvent)> on_ping_callback;
@@ -237,9 +237,7 @@ class Bot {
     std::function<void(TagRemovedEvent)> on_tag_removed_callback;
     std::function<void()> on_launched_callback;
 public:
-    std::string get_uuid() { return uuid; }
-    std::string get_username() { return username; }
-    std::string get_home_channel_id() { return home_channel_id; }
+    std::string get_token() { return access_token; }
     Bot(std::string _verification_token, std::string _access_token);
     template<class F>
     void on_ping(F callback) { on_ping_callback = callback; }
