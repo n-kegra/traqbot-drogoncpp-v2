@@ -1,4 +1,5 @@
 #include <drogon/drogon.h>
+#include <thread>
 #include <traQ/apis/MeApi.h>
 #include <traQBot/events.h>
 #include <traQBot/models.h>
@@ -108,14 +109,21 @@ Bot::Bot(std::string _verification_token, std::string _access_token) :
             }
         }
     });
-    drogon::app().getLoop()->runAfter(std::chrono::seconds(0), [*this]() mutable {
-        traQApi::MeApi cli("https://q.trap.jp", "/api/v3");
-        const auto [_res, _resp, me] = cli.getMe();
-        if(me) {
-            uuid = me->id;
-            username = me->name;
-            home_channel_id = me->homeChannel;
-        }
+
+    drogon::app().getLoop()->runAfter(std::chrono::seconds(0), [*this]() mutable {    
+        std::thread deployed_task([*this]() mutable {
+            traQApi::MeApi cli("https://q.trap.jp", "/api/v3");
+            const auto [_res, _resp, me] = cli.getMe();
+            if(me) {
+                uuid = me->id;
+                username = me->name;
+                home_channel_id = me->homeChannel;
+                std::cout << "UUID : " << uuid << std::endl;
+                std::cout << "username : " << username << std::endl;
+                std::cout << "home channel : " << home_channel_id << std::endl;
+            }
+        });
+        deployed_task.detach();
     });
 }
 

@@ -3,7 +3,6 @@
 
 #include <string>
 #include <vector>
-#include <variant>
 #include <functional>
 #include <traQBot/models.h>
 
