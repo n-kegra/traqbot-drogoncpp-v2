@@ -1,6 +1,6 @@
 #include <drogon/drogon.h>
 #include <thread>
-#include <traQ/apis/MeApi.h>
+// #include <traQ/apis/MeApi.h>
 #include <traQBot/events.h>
 #include <traQBot/models.h>
 
